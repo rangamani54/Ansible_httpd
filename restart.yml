@@ -1,0 +1,86 @@
+- hosts: restart
+  vars_prompt:
+  - name: new_port
+    private: no 
+    prompt: "Enter the Port number for httpd: "
+ 
+  - name: httpd_dir
+    private: no
+    prompt: "Enter the root  directory name for httpd"
+
+  tasks:
+  - name: "Creating Directory"
+    file:
+      state: directory
+      path: /dvd
+
+  - name: "Mounting DVD"
+    mount:
+         path: /dvd
+         src: /dev/sr0
+         fstype: iso9660
+         opts: ro,noauto
+         state: mounted
+    ignore_errors: yes
+
+  - name: "Configuring YUM repo"
+    yum_repository:
+         name: AppStream
+         description: Repo for AppStream
+         file: dvd.repo
+         baseurl: file:///dvd/AppStream/
+         gpgcheck: no
+
+  - name: "Configuring Base YUM repo"
+    yum_repository:
+          name: BaseOS
+          description: Repo for BaseOS
+          file: dvd.repo
+          baseurl: file:///dvd/BaseOS/
+          gpgcheck: no
+
+  - name: "Installing httpd software"
+    yum:
+        name: httpd
+        state: present
+
+  - name: "Root directory for httpd"
+    file:
+         name: "/{{ httpd_dir }}"
+         state: directory
+  - name: "Copying configuration file"
+    template:
+            src: /ws4/custom.conf
+            dest: /etc/httpd/conf.d/
+    notify: Restarting web service
+
+  - name: "Copying web page"
+    template: 
+        src: "/ws4/m.html"
+        dest: "/{{ httpd_dir }}"
+
+  - name: "Starting web service"
+    service:
+        name: httpd
+        state: started
+
+  - name: "Stopping firewall"
+    firewalld:
+         port: "{{new_port}}/tcp"
+         permanent: yes
+         immediate: yes
+         state: enabled
+    
+  handlers:
+  - name: Restarting web service
+    service:
+       name: httpd
+       state: restarted
+
+      
+
+
+
+
+        
+
