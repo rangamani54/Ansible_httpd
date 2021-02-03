@@ -1,0 +1,17 @@
+- hosts: restart
+  tasks:
+   - name: "Installing httpd software"
+     yum:
+        name: httpd
+        state: present
+
+   - name: "Copying web page"
+     template:
+        src: /ws4/test.html
+        dest: /var/www/html/
+    
+   - name: "Starting web service"
+     service:
+        name: httpd
+        state: started
+
