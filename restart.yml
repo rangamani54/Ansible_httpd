@@ -46,7 +46,7 @@
 
   - name: "Root directory for httpd"
     file:
-         name: "{{ httpd_dir }}"
+         name: "/var/www/{{ httpd_dir }}"
          state: directory
   - name: "Copying configuration file"
     template:
@@ -57,7 +57,7 @@
   - name: "Copying web page"
     template: 
         src: "/ws4/m.html"
-        dest: "{{ httpd_dir }}"
+        dest: "/var/www/{{ httpd_dir }}"
 
   - name: "Starting web service"
     service:
